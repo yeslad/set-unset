@@ -1,48 +1,49 @@
 def dynamic_unset(path, original)
-  pass = false
+  if !original.is_a?(Hash)
+    return false
+  end
   while path.count > 1
     part = path.shift
-    if !pass && original.key?(part)
-      pass = original[part]
-    elsif pass && pass.key?(part)
-      pass = pass[part]
+    if original.is_a?(Hash) && original.key?(part)
+      original = original[part]
     else
       return false
     end
   end
   
-  if !pass || !pass.key?(path[0])
+  if !original.is_a?(Hash) || !original.key?(path[0])
     return false
   end
   
-  ret = pass[path[0]]
-  pass.delete(path[0])
+  ret = original[path[0]]
+  original.delete(path[0])
   
   ret
 end
 
 def dynamic_set(path, original, val)
-  pass = false
+  if !original.is_a?(Hash)
+    return false
+  end
   while path.count > 1
     part = path.shift
-    if !pass
-      if !original.key?(part)
-        original[part] = {}
-      end
-      pass = original[part]
-    else
-      if !pass.key?(part)
-        pass[part] = {}
-      end
-      pass = pass[part]
+    if !original.key?(part)
+      original[part] = {}
+    elsif original[part].is_a?(Array)
+      original[part] = ary_to_hash(original[part])
     end
+    original = original[part]
   end
   
-  if !pass
+  if !original
     return false
   end
   
-  pass[path[0]] = val
+  original[path[0]] = val
 
   true
+end
+
+def ary_to_hash(arr)
+	Hash[arr.each_with_index.map {|value, key| [key, value]}]
 end
